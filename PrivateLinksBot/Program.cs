@@ -3,16 +3,12 @@
     /// <summary>
     /// Entry point
     /// </summary>
-    public class Program
-    {
-        public static Task Main(string[] args)
-        {
-            try
-            {
+    public class Program {
+        public static Task Main(string[] args) {
+            try {
                 return new PrivateLinksBot().RunAsync();
             }
-            catch(Exception e)
-            {
+            catch (Exception e) {
                 Console.WriteLine($"Unhandled exception: {e}");
                 throw;
             }

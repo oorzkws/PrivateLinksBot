@@ -5,41 +5,37 @@ using PrivateLinksBot.UrlProvider;
 
 namespace PrivateLinksBot;
 
-public class PrivateLinkModule : InteractionModuleBase
-{
+public class PrivateLinkModule : InteractionModuleBase {
     private string[] splitTokens = new[] {"\n", "\r\n", " "};
     private StringSplitOptions splitFlags = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
     private bool isEphemeral = true;
-    
-    private IEnumerable<string> IterateWords(string str)
-    {
+
+    private IEnumerable<string> IterateWords(string str) {
         return str.Split(splitTokens, splitFlags).Distinct();
     }
 
     [MessageCommand("Show private link")]
-    public async Task Interact(IMessage msg)
-    {
-        await Logger.LogInfo($"Providing private link for {Context.User.Username} in #{Context.Channel.Name} @ {Context.Guild.Name}");
-        foreach (var word in IterateWords(msg.Content))
-        {
+    public async Task Interact(IMessage msg) {
+        await Logger.LogInfo(
+            $"Providing private link for {Context.User.Username} in #{Context.Channel.Name} @ {Context.Guild.Name}");
+        foreach (var word in IterateWords(msg.Content)) {
             if (!Uri.IsWellFormedUriString(word, UriKind.RelativeOrAbsolute))
                 continue;
 
             var servicedUrl = UrlProviderBroker.RequestUrl(word);
-            
+
             if (servicedUrl is null)
                 continue;
 
-            await RespondAsync(servicedUrl, ephemeral:isEphemeral);
+            await RespondAsync(servicedUrl, ephemeral: isEphemeral);
             return;
         }
 
-        await RespondAsync("No service found to handle the given url.", ephemeral:true);
+        await RespondAsync("No service found to handle the given url.", ephemeral: true);
     }
 
     [MessageCommand("Post private link")]
-    public async Task GetAndPost(IMessage msg)
-    {
+    public async Task GetAndPost(IMessage msg) {
         isEphemeral = false;
         await Interact(msg);
     }
@@ -57,16 +53,16 @@ public class PrivateLinkModule : InteractionModuleBase
     }*/
 
     [SlashCommand("help", "Request a list of supported services")]
-    public async Task SendHelp()
-    {
+    public async Task SendHelp() {
         var services = string.Empty;
-        foreach (var service in UrlProviderBroker.UrlProviderBases)
-        {
+        foreach (var service in UrlProviderBroker.UrlProviderBases) {
             var baseList = UrlProviderBroker.ServiceData[service.ServiceName];
             var cleanList = baseList.Except(UrlProviderBroker.UrlBlacklist).ToList();
-            services += $"\n{service.ServiceNameFriendly} ({baseList.Length} instances, {baseList.Length - cleanList.Count} of which are down)";
+            services +=
+                $"\n{service.ServiceNameFriendly} ({baseList.Length} instances, {baseList.Length - cleanList.Count} of which are down)";
         }
-        await RespondAsync($"Currently providing links for:{services}\n\nPress `[...] -> Apps` on a message to get started.");
 
+        await RespondAsync(
+            $"Currently providing links for:{services}\n\nPress `[...] -> Apps` on a message to get started.");
     }
 }

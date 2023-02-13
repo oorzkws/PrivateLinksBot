@@ -2,12 +2,9 @@
 
 namespace PrivateLinksBot.UrlProvider;
 
-public abstract class BaseYoutubeProvider : UrlProviderBase
-{
-    public BaseYoutubeProvider(DiscordSocketClient client) : base(client)
-    {
-        UrlPatterns = new[]
-        {
+public abstract class BaseYoutubeProvider : UrlProviderBase {
+    public BaseYoutubeProvider(DiscordSocketClient client) : base(client) {
+        UrlPatterns = new[] {
             @"^https?:\/{2}redirect\.invidious\.io\/.*",
             @"^https?:\/{2}(?:www\.|m\.|)youtube.com(\/|$)(?!iframe_api\/|redirect\/)",
             @"^https?:\/{2}img\.youtube.com\/vi\/.*\/..*",
