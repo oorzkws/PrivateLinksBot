@@ -36,13 +36,13 @@ public class UrlProviderService : ServiceBase
         connectionTimer.AutoReset = true;
         connectionTimer.Elapsed += (_, _) =>
         {
-            var services = new List<string>();
+            var services = new List<KeyValuePair<string, string>>();
 
             foreach (var set in UrlProviderBases)
             {
                 foreach (var service in ServiceData[set.ServiceName])
                 {
-                    services.Add(service + set.TestUrlSuffix);
+                    services.Add(new KeyValuePair<string, string>(service, set.TestUrlSuffix));
                 }
             }
             
@@ -52,23 +52,23 @@ public class UrlProviderService : ServiceBase
             {
                 var client = new HttpClient();
                 client.Timeout = TimeSpan.FromSeconds(5);
-                var response = client.Send(new HttpRequestMessage(HttpMethod.Head, randomService));
+                var response = client.Send(new HttpRequestMessage(HttpMethod.Head, randomService.Key + randomService.Value));
                 if (response.IsSuccessStatusCode)
                 {
-                    Logger.LogDebug($"Successfully verified service: {randomService}");
-                    UrlBlacklist.Remove(randomService);
+                    Logger.LogDebug($"Successfully verified service: {randomService.Key}");
+                    UrlBlacklist.Remove(randomService.Key);
                 }
-                else if (!UrlBlacklist.Contains(randomService))
+                else if (!UrlBlacklist.Contains(randomService.Key))
                 {
-                    Logger.LogDebug($"Service {randomService} failed testing");
-                    UrlBlacklist.Add(randomService);
+                    Logger.LogDebug($"Service {randomService.Key} failed testing");
+                    UrlBlacklist.Add(randomService.Key);
                 }
             }
             catch(HttpRequestException e)
             {
-                Logger.LogDebug($"Service {randomService} failed testing with exception {e.Message}");
-                if (!UrlBlacklist.Contains(randomService))
-                    UrlBlacklist.Add(randomService);
+                Logger.LogDebug($"Service {randomService.Key} failed testing with exception {e.Message}");
+                if (!UrlBlacklist.Contains(randomService.Key))
+                    UrlBlacklist.Add(randomService.Key);
             }
         };
         

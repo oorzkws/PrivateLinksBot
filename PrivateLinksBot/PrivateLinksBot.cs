@@ -25,9 +25,6 @@ public class PrivateLinksBot
         var client = serviceProvider.GetRequiredService<DiscordSocketClient>();
         client.Log += Logger.LogAsync;
 
-        // Build the interactor service
-        //await serviceProvider.GetRequiredService<InteractionHandler>().InitializeAsync();
-
         // Activate add-on services
         await serviceProvider.GetRequiredService<ServiceHandler.ServiceInterface>()
             .ActivateAsync();
@@ -49,11 +46,11 @@ public class PrivateLinksBot
     {
         var socketConfig = new DiscordSocketConfig()
         {
+            // All minus unused privileged intents
             GatewayIntents = GatewayIntents.All ^
                              GatewayIntents.GuildScheduledEvents ^
                              ~GatewayIntents.GuildPresences ^
                              ~GatewayIntents.GuildInvites
-            //LogLevel = LogSeverity.Debug
         };
         
         var serviceCollection = new ServiceCollection()
