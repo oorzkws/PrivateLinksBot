@@ -10,6 +10,7 @@
             }
             catch (Exception e) {
                 Console.WriteLine($"Unhandled exception: {e}");
+                //Environment.Exit(e.HResult);
                 throw;
             }
         }

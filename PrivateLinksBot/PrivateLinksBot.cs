@@ -17,7 +17,7 @@ public class PrivateLinksBot {
     }
 
     public async Task RunAsync() {
-        Logger.MinimumLogSeverity = LogSeverity.Debug;
+        //Logger.MinimumLogSeverity = LogSeverity.Debug;
         // Build the client service
         var client = serviceProvider.GetRequiredService<DiscordSocketClient>();
         client.Log += Logger.LogAsync;

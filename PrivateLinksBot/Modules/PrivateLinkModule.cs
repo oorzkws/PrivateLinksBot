@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using PrivateLinksBot.UrlProvider;
+using static PrivateLinksBot.UrlProvider.UrlProviderBroker;
 
 namespace PrivateLinksBot;
 
@@ -145,8 +146,11 @@ public class PrivateLinkModule : InteractionModuleBase {
     [SlashCommand("help", "Request a list of supported services and commands")]
     public async Task SendHelp() {
         var services = string.Empty;
-        foreach (var service in UrlProviderBroker.UrlProviderBases) {
-            var baseList = UrlProviderBroker.ServiceData[service.ServiceName];
+        foreach (var service in UrlProviderBases) {
+            ServiceData.TryGetValue(service.ServiceName, out var baseList);
+            if (baseList is null) {
+                continue;
+            }
             var cleanList = baseList.Except(UrlProviderBroker.UrlBlacklist).ToList();
             services +=
                 $"\n{service.ServiceNameFriendly} ({baseList.Length} instances, {baseList.Length - cleanList.Count} of which are down)";
