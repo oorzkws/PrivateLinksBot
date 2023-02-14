@@ -58,9 +58,7 @@ public static class UrlProviderBroker {
 
     public static string? GetNewUrlFromRandomService(string urlString) {
         // Not a url
-        if (!Uri.IsWellFormedUriString(urlString, UriKind.RelativeOrAbsolute)) return null;
-
-        var url = new Uri(urlString);
+        if (!Uri.TryCreate(urlString, UriKind.Absolute, out var url)) return null;
 
         var randomService = GetRandomServiceForUrl(url);
 
