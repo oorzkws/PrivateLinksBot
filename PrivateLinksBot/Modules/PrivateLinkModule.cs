@@ -73,13 +73,12 @@ public class PrivateLinkModule : InteractionModuleBase {
         };
         // RIP timegate
         // var requestUrl = new Uri(@"http://timetravel.mementoweb.org/timegate/" + url);
-        var requestUrl = new Uri($@"https://web.archive.org/web/{DateTime.Today:yyyyMMdd}/{url}");
+        var requestUrl = new Uri($@"https://web.archive.org/web/9999/{url}");
         var httpMessage = new HttpRequestMessage(HttpMethod.Head, requestUrl);
         string? redirectUrl = null;
         
         // See if it exists in archived form
         try {
-            await Logger.LogInfo($"\tAsking {requestUrl}");
             var redirectData = await httpClient.SendAsync(httpMessage, HttpCompletionOption.ResponseHeadersRead);
             var location = redirectData.Headers.Location;
             // Decline timegate-to-timegate redirects
@@ -88,7 +87,6 @@ public class PrivateLinkModule : InteractionModuleBase {
             }
         }
         catch {
-            await Logger.LogInfo("\tError during httprequest");
             // redirectUrl will be null anyway
         }
 
