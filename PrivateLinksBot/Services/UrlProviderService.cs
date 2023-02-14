@@ -33,9 +33,9 @@ public class UrlProviderService : ServiceBase {
         connectionTimer.Elapsed += (_, _) => {
             var targetService = GetRandomService(HasServiceData);
             var targetUrl = targetService!.GetRandomInstance(true);
-            
+
             try {
-                var client = new HttpClient { Timeout = targetService.TestTimeoutSpan };
+                var client = new HttpClient {Timeout = targetService.TestTimeoutSpan};
                 var message = new HttpRequestMessage(HttpMethod.Head, targetUrl + targetService.TestUrlSuffix);
                 var response = client.Send(message);
                 if (response.IsSuccessStatusCode) {
