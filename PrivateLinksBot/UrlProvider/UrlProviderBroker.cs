@@ -24,28 +24,34 @@ public static class UrlProviderBroker {
             Logger.LogInfo("No data.json found in working directory.");
         }
     }
+    
+    public static bool HasServiceData(UrlProviderBase service) => ServiceData.ContainsKey(service.ServiceName);
 
-    public static string[] TryGetService(string service, string defaultService) {
-        if (ServiceData.TryGetValue(service, out string[]? ret)) {
-            return ret;
+    public static UrlProviderBase? GetRandomService(Func<UrlProviderBase, bool> predicate) {
+        var serviceList = UrlProviderBases.Where(predicate).ToList();
+        var serviceCount = serviceList.Count;
+        if (serviceCount == 0) {
+            return null;
         }
-
-        return new[] {defaultService};
+        var randomIndex = new Random().Next(0, serviceList.Count - 1);
+        return serviceList[randomIndex];
+    }
+    
+    public static UrlProviderBase? GetRandomServiceForUrl(Uri url) {
+        return GetRandomService(s => s.IsApplicable(url.ToString()));
     }
 
-    public static bool HasApplicableService(string url) {
-        return UrlProviderBases.Any(p => p.IsApplicable(url));
-    }
+    public static string? GetNewUrlFromRandomService(string urlString) {
+        // Not a url
+        if (!Uri.IsWellFormedUriString(urlString, UriKind.RelativeOrAbsolute)) return null;
 
-    public static string? RequestUrl(string url) {
-        var validServices = (from provider in UrlProviderBases
-            where provider.IsApplicable(url)
-            select provider).ToList();
+        var url = new Uri(urlString);
 
-        if (validServices.Count == 0)
+        var randomService = GetRandomServiceForUrl(url);
+        // No service handles given url
+        if (randomService is null)
             return null;
 
-        var index = new Random().Next(0, validServices.Count - 1);
-        return validServices[index].RequestUrl(url);
+        return randomService.GetRandomInstance(url);
     }
 }

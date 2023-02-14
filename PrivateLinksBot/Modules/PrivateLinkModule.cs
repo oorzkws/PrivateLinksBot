@@ -22,7 +22,7 @@ public class PrivateLinkModule : InteractionModuleBase {
             if (!Uri.IsWellFormedUriString(word, UriKind.RelativeOrAbsolute))
                 continue;
 
-            var servicedUrl = UrlProviderBroker.RequestUrl(word);
+            var servicedUrl = UrlProviderBroker.GetNewUrlFromRandomService(word);
 
             if (servicedUrl is null)
                 continue;

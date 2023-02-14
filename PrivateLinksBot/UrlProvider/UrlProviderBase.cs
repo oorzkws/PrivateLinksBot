@@ -8,6 +8,7 @@ public abstract class UrlProviderBase {
     public string ServiceName { get; protected set; } = string.Empty;
     public string FallbackUrl { get; protected set; } = string.Empty;
     public string TestUrlSuffix { get; protected set; } = string.Empty;
+    public TimeSpan TestTimeoutSpan { get; protected set; } = TimeSpan.FromSeconds(2);
     public string[] UrlPatterns { get; protected set; } = { };
 
     protected UrlProviderBase(DiscordSocketClient client) {
@@ -16,22 +17,18 @@ public abstract class UrlProviderBase {
     public virtual bool IsApplicable(string urlString) =>
         UrlPatterns.Any(str => Regex.Match(urlString, str).Success);
 
-    public virtual string RandomInstance() {
+    public virtual string GetRandomInstance(bool ignoreBlacklist = false) {
         if (!UrlProviderBroker.ServiceData.TryGetValue(ServiceName, out var serviceUrls))
             serviceUrls = new[] {FallbackUrl};
 
-        var cleanUrls = serviceUrls.Except(UrlProviderBroker.UrlBlacklist).ToList();
-        if (cleanUrls.Count == 0)
+        var cleanUrls = ignoreBlacklist ? serviceUrls : serviceUrls.Except(UrlProviderBroker.UrlBlacklist).ToArray();
+        if (cleanUrls.Length == 0)
             throw new IndexOutOfRangeException($"UrlProviderBase {GetType().Name} has no non-blacklisted ServiceUrls");
 
-        var index = new Random().Next(0, cleanUrls.Count - 1);
+        var index = new Random().Next(0, cleanUrls.Length - 1);
 
-        return cleanUrls[index];
+        return cleanUrls[index] + "";
     }
 
-    public virtual string RequestUrl(Uri url) {
-        return RandomInstance() + url.PathAndQuery;
-    }
-
-    public virtual string RequestUrl(string url) => RequestUrl(new Uri(url));
+    public virtual string GetRandomInstance(Uri url) => GetRandomInstance() + url.PathAndQuery;
 }
