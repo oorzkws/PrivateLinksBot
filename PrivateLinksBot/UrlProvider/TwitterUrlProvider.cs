@@ -1,13 +1,11 @@
-﻿using Discord.WebSocket;
-
-namespace PrivateLinksBot.UrlProvider;
+﻿namespace PrivateLinksBot.UrlProvider;
 
 public class TwitterUrlProvider : UrlProviderBase {
-    public TwitterUrlProvider(DiscordSocketClient client) : base(client) {
-        ServiceNameFriendly = "Twitter - Nitter";
-        ServiceName = "nitter";
-        FallbackUrl = "https://nitter.nl";
-        TestUrlSuffix = "/about";
+    public TwitterUrlProvider(UrlProviderService service) : base(service) {
+        Name = "nitter";
+        FriendlyName = "Twitter - Nitter";
+        SecondaryUrls = new[]{"https://nitter.nl"};
+        TestEndpoint = "/about";
         UrlPatterns = new[] {
             @"^https?:\/{2}(www\.|mobile\.|)twitter\.com(\/|$)",
             @"^https?:\/{2}(pbs\.|video\.|)twimg\.com(\/|$)",

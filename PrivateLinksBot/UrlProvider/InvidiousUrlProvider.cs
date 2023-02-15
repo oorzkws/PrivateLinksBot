@@ -1,12 +1,10 @@
-﻿using Discord.WebSocket;
-
-namespace PrivateLinksBot.UrlProvider;
+﻿namespace PrivateLinksBot.UrlProvider;
 
 public class InvidiousUrlProvider : BaseYoutubeProvider {
-    public InvidiousUrlProvider(DiscordSocketClient client) : base(client) {
-        ServiceNameFriendly = "YouTube - Invidious";
-        ServiceName = "invidious";
-        TestUrlSuffix = "/privacy";
-        FallbackUrl = "https://yewtu.be";
+    public InvidiousUrlProvider(UrlProviderService service) : base(service) {
+        Name = "invidious";
+        FriendlyName = "YouTube - Invidious";
+        TestEndpoint = "/privacy";
+        SecondaryUrls = new[] {"https://yewtu.be"};
     }
 }

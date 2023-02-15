@@ -1,30 +1,29 @@
 ﻿using Discord;
 using Discord.Interactions;
-using PrivateLinksBot.UrlProvider;
-using static PrivateLinksBot.UrlProvider.UrlProviderBroker;
 
 namespace PrivateLinksBot;
 
 public class PrivateLinkModule : InteractionModuleBase {
-    private readonly string[] splitTokens = new[] {"\n", "\r\n", " "};
+    private readonly string[] splitTokens = {"\n", "\r\n", " "};
     private readonly StringSplitOptions splitFlags = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+    private readonly UrlProviderService provider;
     private bool isEphemeral = true;
 
+    public PrivateLinkModule(UrlProviderService service) {
+        provider = service;
+    }
+    
     private IEnumerable<string> IterateWords(string str) {
         return str.Split(splitTokens, splitFlags).Distinct();
     }
 
-    private string? PrivatizeLink(string url) {
-        return Uri.TryCreate(url, UriKind.Absolute, out var result) ? UrlProviderBroker.GetNewUrlFromRandomService(result.ToString()) : null;
-    }
-
-    [SlashCommand("privatize", "Post a private version of a url")]
-    public async Task Privatize(string url)
+    [SlashCommand("privatize", "Post a private version of a link")]
+    public async Task PostPrivateLink_Slash(string url)
     {
-        var servicedUrl = PrivatizeLink(url);
+        var servicedUrl = provider.GetLinkFromRandomApplicableService(url);
 
         if (servicedUrl is null) {
-            await RespondAsync("No service found to handle the given url.", ephemeral: true);
+            await RespondAsync("No service found to handle the given link.", ephemeral: true);
             return;
         }
 
@@ -32,11 +31,11 @@ public class PrivateLinkModule : InteractionModuleBase {
     }
     
     [MessageCommand("Show private link")]
-    public async Task Interact(IMessage msg) {
+    public async Task ShowPrivateLink_Msg(IMessage msg) {
         await Logger.LogInfo(
             $"Providing private link for {Context.User.Username} in #{Context.Channel.Name} @ {Context.Guild.Name}");
         foreach (var word in IterateWords(msg.Content)) {
-            var servicedUrl = PrivatizeLink(word);
+            var servicedUrl = provider.GetLinkFromRandomApplicableService(word);
 
             if (servicedUrl is null)
                 continue;
@@ -45,18 +44,18 @@ public class PrivateLinkModule : InteractionModuleBase {
             return;
         }
 
-        await RespondAsync("No service found to handle the given url.", ephemeral: true);
+        await RespondAsync("No service found to handle the given link.", ephemeral: true);
     }
 
     [MessageCommand("Post private link")]
-    public async Task GetAndPost(IMessage msg) {
+    public async Task PostPrivateLink_Msg(IMessage msg) {
         isEphemeral = false;
-        await Interact(msg);
+        await ShowPrivateLink_Msg(msg);
         isEphemeral = true;
     }
     
-    [SlashCommand("archive", "Archive a url")]
-    public async Task Archive(string url)
+    [SlashCommand("archive", "Archive a link")]
+    public async Task ArchiveLink_Slash(string url)
     {
         await Logger.LogInfo(
             $"Providing archive link for {Context.User.Username} in #{Context.Channel.Name} @ {Context.Guild.Name}");
@@ -126,7 +125,7 @@ public class PrivateLinkModule : InteractionModuleBase {
     }
     
     [MessageCommand("Post archived link")]
-    public async Task ArchiveMessage(IMessage msg) {
+    public async Task ArchiveLink_Msg(IMessage msg) {
         string? url = null;
         foreach (var word in IterateWords(msg.Content)) {
             if (Uri.TryCreate(word, UriKind.Absolute, out var result)) {
@@ -140,24 +139,27 @@ public class PrivateLinkModule : InteractionModuleBase {
             return;
         }
 
-        await Archive(url);
+        await ArchiveLink_Slash(url);
     }
 
     [SlashCommand("help", "Request a list of supported services and commands")]
-    public async Task SendHelp() {
-        var services = string.Empty;
-        foreach (var service in UrlProviderBases) {
-            ServiceData.TryGetValue(service.ServiceName, out var baseList);
-            if (baseList is null) {
+    public async Task Help_Slash() {
+        var serviceDescriptions = string.Empty;
+        foreach (var service in provider.Providers.Values) {
+            // No dynamic instances to be blacklisted
+            if (service.PrimaryUrls is null || service.PrimaryUrls.Length == 0) {
+                serviceDescriptions +=
+                    $"\n{service.FriendlyName} ({service.SecondaryUrls.Length} instances, 0 of which are down)";
                 continue;
             }
-            var cleanList = baseList.Except(UrlProviderBroker.UrlBlacklist).ToList();
-            services +=
-                $"\n{service.ServiceNameFriendly} ({baseList.Length} instances, {baseList.Length - cleanList.Count} of which are down)";
+            var activeCount = service.PrimaryUrls!.Length;
+            var inactiveCount = activeCount - service.PrimaryUrls!.Except(provider.Blacklist).Count();
+            serviceDescriptions +=
+                $"\n{service.FriendlyName} ({activeCount} instances, {inactiveCount} of which are down)";
         }
 
         await RespondAsync(
-$@"Currently providing links for:{services}
+$@"Currently providing links for:{serviceDescriptions}
 
 Showing a link will send it privately, posting it will send it publicly.
 You may archive a link to ask for a historical copy instead of a proxy.

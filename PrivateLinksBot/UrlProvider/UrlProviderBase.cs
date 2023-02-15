@@ -1,34 +1,53 @@
 ﻿using System.Text.RegularExpressions;
-using Discord.WebSocket;
 
 namespace PrivateLinksBot.UrlProvider;
 
 public abstract class UrlProviderBase {
-    public string ServiceNameFriendly { get; protected set; } = string.Empty;
-    public string ServiceName { get; protected set; } = string.Empty;
-    public string FallbackUrl { get; protected set; } = string.Empty;
-    public string TestUrlSuffix { get; protected set; } = string.Empty;
-    public TimeSpan TestTimeoutSpan { get; protected set; } = TimeSpan.FromSeconds(2);
-    public string[] UrlPatterns { get; protected set; } = { };
-
-    protected UrlProviderBase(DiscordSocketClient client) {
+    private UrlProviderService service;
+    public string Name;
+    public string FriendlyName;
+    public string[]? PrimaryUrls;
+    public string[] SecondaryUrls;
+    public string[] UrlPatterns;
+    public string TestEndpoint;
+    public int ConnectionTimeoutSeconds = 2;
+    
+    protected UrlProviderBase(UrlProviderService service) {
+        this.service = service;
+        // These will be overwritten in any child classes
+        Name = string.Empty;
+        FriendlyName = string.Empty;
+        SecondaryUrls = Array.Empty<string>();
+        UrlPatterns = Array.Empty<string>();
+        TestEndpoint = string.Empty;
     }
 
-    public virtual bool IsApplicable(string urlString) =>
+
+    public bool IsApplicable(string urlString) =>
         UrlPatterns.Any(str => Regex.Match(urlString, str).Success);
 
-    public virtual string GetRandomInstance(bool ignoreBlacklist = false) {
-        if (!UrlProviderBroker.ServiceData.TryGetValue(ServiceName, out var serviceUrls))
-            serviceUrls = new[] {FallbackUrl};
-
-        var cleanUrls = ignoreBlacklist ? serviceUrls : serviceUrls.Except(UrlProviderBroker.UrlBlacklist).ToArray();
-        if (cleanUrls.Length == 0)
-            throw new IndexOutOfRangeException($"UrlProviderBase {GetType().Name} has no non-blacklisted ServiceUrls");
-
-        var index = new Random().Next(0, cleanUrls.Length - 1);
-
-        return cleanUrls[index] + "";
+    private string GetRandomInstance(bool ignoreBlacklist = false) {
+        string[]? validInstances = PrimaryUrls;
+        
+        // We have to do some work to build the list in this case
+        if (!ignoreBlacklist && validInstances is not null) {
+            // Subtract our blacklist and return the remainder to our local if it has any entries
+            var cleanInstances = validInstances.Except(service.Blacklist).ToArray();
+            if (cleanInstances.Length > 0) {
+                validInstances = cleanInstances;
+            }
+        }
+        
+        // We have no primary list or failed to find any clean entries
+        validInstances ??= SecondaryUrls;
+        
+        // Huzzah
+        return validInstances.RandomEntry();
     }
 
-    public virtual string GetRandomInstance(Uri url) => GetRandomInstance() + url.PathAndQuery;
+    protected virtual string GetLink(string instance, Uri url) {
+        return instance + url.PathAndQuery;
+    }
+
+    public string GetLinkFromRandomInstance(Uri url) => GetLink(GetRandomInstance(), url);
 }

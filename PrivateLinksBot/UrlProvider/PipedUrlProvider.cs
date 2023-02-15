@@ -4,7 +4,7 @@
 //
 // public class PipedUrlProvider : BaseYoutubeProvider
 // {
-//     public PipedUrlProvider(DiscordSocketClient client) : base(client)
+//     public PipedUrlProvider(UrlProviderService service) : base(service)
 //     {
 //         ServiceName = "YouTube - Piped";
 //         ServiceUrls = UrlProviderBroker.ServiceData?["piped"]["normal"] ?? new[] {"https://piped.video"};

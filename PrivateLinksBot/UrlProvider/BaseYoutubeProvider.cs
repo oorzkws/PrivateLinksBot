@@ -1,9 +1,7 @@
-﻿using Discord.WebSocket;
-
-namespace PrivateLinksBot.UrlProvider;
+﻿namespace PrivateLinksBot.UrlProvider;
 
 public abstract class BaseYoutubeProvider : UrlProviderBase {
-    public BaseYoutubeProvider(DiscordSocketClient client) : base(client) {
+    public BaseYoutubeProvider(UrlProviderService service) : base(service) {
         UrlPatterns = new[] {
             @"^https?:\/{2}redirect\.invidious\.io\/.*",
             @"^https?:\/{2}(?:www\.|m\.|)youtube.com(\/|$)(?!iframe_api\/|redirect\/)",

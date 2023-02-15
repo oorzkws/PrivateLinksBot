@@ -1,26 +1,25 @@
-﻿using Discord.WebSocket;
-
-namespace PrivateLinksBot.UrlProvider;
+﻿namespace PrivateLinksBot.UrlProvider;
 
 public class LibRedditUrlProvider : UrlProviderBase {
-    public LibRedditUrlProvider(DiscordSocketClient client) : base(client) {
-        ServiceNameFriendly = "Reddit - Libreddit";
-        ServiceName = "libreddit";
-        FallbackUrl = "https://libreddit.spike.codes";
-        TestUrlSuffix = "/settings";
-        TestTimeoutSpan = TimeSpan.FromSeconds(10);
+    public LibRedditUrlProvider(UrlProviderService service) : base(service) {
+        // Set metadata
+        Name = "libreddit";
+        FriendlyName = "Reddit - Libreddit";
+        SecondaryUrls = new[] {"https://libreddit.spike.codes"};
+        TestEndpoint = "/settings";
         UrlPatterns = new[] {
             @"^https?:\/{2}(www\.|old\.|np\.|new\.|amp\.|)(reddit|reddittorjg6rue252oqsxryoxengawnmo46qy4kyii5wtqnwfj4ooad)\.(com|onion)(?=\/u(ser)?\/|\/r\/|\/search|\/new|\/?$)",
             @"^https?:\/{2}(i|(external-)?preview)\.redd\.it"
         };
+        ConnectionTimeoutSeconds = 10;
     }
 
-    public override string GetRandomInstance(Uri url) {
+    protected override string GetLink(string instance, Uri url) {
         return url.Host.Split('.')[0] switch {
-            "preview" => $"{GetRandomInstance()}/preview/pre{url.PathAndQuery}",
-            "external-preview" => $"{GetRandomInstance()}/preview/external-pre{url.PathAndQuery}",
-            "i" => $"{GetRandomInstance()}/img{url.AbsolutePath}",
-            _ => GetRandomInstance() + url.PathAndQuery,
+            "preview" => $"{instance}/preview/pre{url.PathAndQuery}",
+            "external-preview" => $"{instance}/preview/external-pre{url.PathAndQuery}",
+            "i" => $"{instance}/img{url.AbsolutePath}",
+            _ => base.GetLink(instance, url)
         };
     }
 }

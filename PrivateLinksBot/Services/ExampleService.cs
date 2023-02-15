@@ -6,7 +6,7 @@ namespace PrivateLinksBot;
 /// Example service doing basic things
 /// </summary>
 public class ExampleService : ServiceBase {
-    public ExampleService(DiscordSocketClient client) : base(client) {
+    public ExampleService(DiscordSocketClient service) : base(service) {
     }
 
     public override async Task InitializeAsync() {
