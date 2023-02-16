@@ -13,18 +13,17 @@ public class PrivateLinksBot {
     private readonly IServiceProvider serviceProvider;
 
     public PrivateLinksBot() {
+        Logger.MinimumLogSeverity = LogSeverity.Debug;
         serviceProvider = CreateServices();
     }
 
     public async Task RunAsync() {
-        //Logger.MinimumLogSeverity = LogSeverity.Debug;
         // Build the client service
         var client = serviceProvider.GetRequiredService<DiscordSocketClient>();
         client.Log += Logger.LogAsync;
 
         // Activate add-on services
-        await serviceProvider.GetRequiredService<ServiceHandler.ServiceInterface>()
-            .ActivateAsync();
+        await serviceProvider.ActivateAsync<ServiceBase>();
 
         var token = Environment.GetEnvironmentVariable(tokenEnvironmentVariable);
 
@@ -53,7 +52,7 @@ public class PrivateLinksBot {
             .AddSingleton<DiscordSocketClient>()
             .AddSingleton(provider => new InteractionService(provider.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton<InteractionService>()
-            .RegisterImplicitServices();
+            .RegisterImplicitServices<ServiceBase>();
 
         return serviceCollection.BuildServiceProvider();
     }

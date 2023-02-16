@@ -8,8 +8,10 @@ namespace PrivateLinksBot;
 public abstract class ServiceBase {
     protected DiscordSocketClient Client { get; }
 
+    // ReSharper disable once PublicConstructorInAbstractClass - Required for DI
     public ServiceBase(DiscordSocketClient client) {
-        this.Client = client;
+        Logger.LogDebug($"Constructing {GetType()}");
+        Client = client;
     }
 
     public virtual Task InitializeAsync() {

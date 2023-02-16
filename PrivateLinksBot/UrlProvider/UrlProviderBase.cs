@@ -3,7 +3,7 @@
 namespace PrivateLinksBot;
 
 public abstract class UrlProviderBase {
-    private UrlProviderService service;
+    private readonly UrlProviderService service;
     public string Name;
     public string FriendlyName;
     public string[]? PrimaryUrls;
@@ -12,7 +12,9 @@ public abstract class UrlProviderBase {
     public string TestEndpoint;
     public int ConnectionTimeoutSeconds = 2;
     
+    // ReSharper disable once PublicConstructorInAbstractClass - required for DI
     public UrlProviderBase(UrlProviderService service) {
+        Logger.LogDebug($"Constructing {GetType()}");
         this.service = service;
         // These will be overwritten in any child classes
         Name = string.Empty;

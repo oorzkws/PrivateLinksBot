@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PrivateLinksBot;
 
@@ -9,8 +10,9 @@ public class PrivateLinkModule : InteractionModuleBase {
     private readonly UrlProviderService provider;
     private bool isEphemeral = true;
 
-    public PrivateLinkModule(UrlProviderService service) {
-        provider = service;
+    public PrivateLinkModule(IServiceProvider serviceProvider) {
+        // We have to do this because DI doesn't work properly when we're started by the interaction handler...
+        provider = ActivatorUtilities.GetServiceOrCreateInstance<UrlProviderService>(serviceProvider);
     }
     
     private IEnumerable<string> IterateWords(string str) {
