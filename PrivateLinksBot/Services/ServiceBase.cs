@@ -8,7 +8,7 @@ namespace PrivateLinksBot;
 public abstract class ServiceBase {
     protected DiscordSocketClient Client { get; }
 
-    protected ServiceBase(DiscordSocketClient client) {
+    public ServiceBase(DiscordSocketClient client) {
         this.Client = client;
     }
 

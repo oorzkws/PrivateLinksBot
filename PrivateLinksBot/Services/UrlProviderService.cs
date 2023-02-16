@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using Discord.WebSocket;
-using PrivateLinksBot.UrlProvider;
 using Timer = System.Timers.Timer;
 using static System.TimeSpan;
 

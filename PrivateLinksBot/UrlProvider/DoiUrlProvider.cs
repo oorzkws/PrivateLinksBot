@@ -1,4 +1,4 @@
-﻿namespace PrivateLinksBot.UrlProvider; 
+﻿namespace PrivateLinksBot; 
 
 public class DoiUrlProvider  : UrlProviderBase {
 

@@ -1,4 +1,4 @@
-﻿namespace PrivateLinksBot.UrlProvider;
+﻿namespace PrivateLinksBot;
 
 public class LibRedditUrlProvider : UrlProviderBase {
     public LibRedditUrlProvider(UrlProviderService service) : base(service) {

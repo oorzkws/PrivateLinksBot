@@ -1,4 +1,4 @@
-﻿namespace PrivateLinksBot.UrlProvider;
+﻿namespace PrivateLinksBot;
 
 public class TwitterUrlProvider : UrlProviderBase {
     public TwitterUrlProvider(UrlProviderService service) : base(service) {

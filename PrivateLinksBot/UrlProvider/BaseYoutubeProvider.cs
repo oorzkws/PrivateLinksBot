@@ -1,4 +1,4 @@
-﻿namespace PrivateLinksBot.UrlProvider;
+﻿namespace PrivateLinksBot;
 
 public abstract class BaseYoutubeProvider : UrlProviderBase {
     public BaseYoutubeProvider(UrlProviderService service) : base(service) {

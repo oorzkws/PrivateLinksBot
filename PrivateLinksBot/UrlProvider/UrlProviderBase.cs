@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace PrivateLinksBot.UrlProvider;
+namespace PrivateLinksBot;
 
 public abstract class UrlProviderBase {
     private UrlProviderService service;
@@ -12,7 +12,7 @@ public abstract class UrlProviderBase {
     public string TestEndpoint;
     public int ConnectionTimeoutSeconds = 2;
     
-    protected UrlProviderBase(UrlProviderService service) {
+    public UrlProviderBase(UrlProviderService service) {
         this.service = service;
         // These will be overwritten in any child classes
         Name = string.Empty;

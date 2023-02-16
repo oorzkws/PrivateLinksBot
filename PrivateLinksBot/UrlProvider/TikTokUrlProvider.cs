@@ -1,4 +1,4 @@
-﻿namespace PrivateLinksBot.UrlProvider;
+﻿namespace PrivateLinksBot;
 
 public class TikTokUrlProvider : UrlProviderBase {
     public TikTokUrlProvider(UrlProviderService service) : base(service) {
