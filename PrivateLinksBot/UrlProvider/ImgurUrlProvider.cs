@@ -1,5 +1,6 @@
 ﻿namespace PrivateLinksBot;
 
+
 public class ImgurUrlProvider : UrlProviderBase {
     public ImgurUrlProvider(UrlProviderService service) : base(service) {
         Name = "rimgo";

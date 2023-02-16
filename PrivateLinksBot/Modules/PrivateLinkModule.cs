@@ -1,18 +1,22 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Microsoft.Extensions.DependencyInjection;
+using JetBrains.Annotations;
+using static PrivateLinksBot.Logger;
 
 namespace PrivateLinksBot;
 
+[UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
 public class PrivateLinkModule : InteractionModuleBase {
     private readonly string[] splitTokens = {"\n", "\r\n", " "};
-    private readonly StringSplitOptions splitFlags = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+    private const StringSplitOptions splitFlags = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
     private readonly UrlProviderService provider;
     private bool isEphemeral = true;
 
     public PrivateLinkModule(IServiceProvider serviceProvider) {
+        LogDebug(GetType(), "Initializing");
         // We have to do this because DI doesn't work properly when we're started by the interaction handler...
-        provider = ActivatorUtilities.GetServiceOrCreateInstance<UrlProviderService>(serviceProvider);
+        provider = serviceProvider.GetRequiredConcreteService<UrlProviderService, ServiceBase>();
+        LogDebug(GetType(), $"Child of {provider.Epoch}");
     }
     
     private IEnumerable<string> IterateWords(string str) {
@@ -34,8 +38,7 @@ public class PrivateLinkModule : InteractionModuleBase {
     
     [MessageCommand("Show private link")]
     public async Task ShowPrivateLink_Msg(IMessage msg) {
-        await Logger.LogInfo(
-            $"Providing private link for {Context.User.Username} in #{Context.Channel.Name} @ {Context.Guild.Name}");
+        LogInfo("/privatize",$"Providing private link for {Context.User.Username} in #{Context.Channel.Name} @ {Context.Guild.Name}");
         foreach (var word in IterateWords(msg.Content)) {
             var servicedUrl = provider.GetLinkFromRandomApplicableService(word);
 
@@ -59,7 +62,7 @@ public class PrivateLinkModule : InteractionModuleBase {
     [SlashCommand("archive", "Archive a link")]
     public async Task ArchiveLink_Slash(string url)
     {
-        await Logger.LogInfo(
+        LogInfo("/archive",
             $"Providing archive link for {Context.User.Username} in #{Context.Channel.Name} @ {Context.Guild.Name}");
         
         if (!Uri.TryCreate(url, UriKind.Absolute, out var parsedUrl)) {
@@ -93,7 +96,7 @@ public class PrivateLinkModule : InteractionModuleBase {
         }
 
         if (redirectUrl is not null) {
-            await Logger.LogInfo("\tFound an archived copy");
+            LogInfo("/archive", "Found an archived copy");
             await ModifyOriginalResponseAsync(m =>
                 m.Content = $"`{url}`\n{redirectUrl}"
             );
@@ -105,22 +108,20 @@ public class PrivateLinkModule : InteractionModuleBase {
             httpMessage = new HttpRequestMessage(HttpMethod.Head, @"https://web.archive.org/save/" + url);
             var redirectData = await httpClient.SendAsync(httpMessage, HttpCompletionOption.ResponseHeadersRead);
             redirectUrl = redirectData.Headers.Location?.ToString();
-            await Logger.LogInfo(redirectData.ToString());
-            await Logger.LogInfo(redirectData.StatusCode.ToString());
         }
         catch {
             // sigh
         }
         
         if (redirectUrl is not null) {
-            await Logger.LogInfo("\tProviding a new archive");
+            LogInfo("/archive", "Providing a new archive");
             await ModifyOriginalResponseAsync(m =>
                 m.Content = $"`{url}`\n{redirectUrl}"
             );
             return;
         }
         
-        await Logger.LogInfo("\tCouldn't archive given link");
+        LogInfo("/archive", "Couldn't archive given link");
         await ModifyOriginalResponseAsync(m => 
             m.Content = $"Archiving `{url}` failed. Make sure your link is valid and publicly accessible."
         );
@@ -130,10 +131,11 @@ public class PrivateLinkModule : InteractionModuleBase {
     public async Task ArchiveLink_Msg(IMessage msg) {
         string? url = null;
         foreach (var word in IterateWords(msg.Content)) {
-            if (Uri.TryCreate(word, UriKind.Absolute, out var result)) {
-                url = result.ToString();
-                break;
+            if (!Uri.TryCreate(word, UriKind.Absolute, out var result)) {
+                continue;
             }
+            url = result.ToString();
+            break;
         }
 
         if (url is null) {

@@ -1,5 +1,6 @@
 ﻿namespace PrivateLinksBot; 
 
+
 public class DoiUrlProvider  : UrlProviderBase {
 
     public DoiUrlProvider(UrlProviderService service) : base(service) {

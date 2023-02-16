@@ -1,20 +1,25 @@
 ﻿using System.Text.RegularExpressions;
+using JetBrains.Annotations;
+using static PrivateLinksBot.Logger;
 
 namespace PrivateLinksBot;
 
+[UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
 public abstract class UrlProviderBase {
     private readonly UrlProviderService service;
     public string Name;
     public string FriendlyName;
     public string[]? PrimaryUrls;
     public string[] SecondaryUrls;
+    [RegexPattern]
+    [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
     public string[] UrlPatterns;
     public string TestEndpoint;
     public int ConnectionTimeoutSeconds = 2;
     
-    // ReSharper disable once PublicConstructorInAbstractClass - required for DI
+    // ReSharper disable once PublicConstructorInAbstractClass
     public UrlProviderBase(UrlProviderService service) {
-        Logger.LogDebug($"Constructing {GetType()}");
+        LogDebug(GetType(),"Constructing...");
         this.service = service;
         // These will be overwritten in any child classes
         Name = string.Empty;
@@ -29,7 +34,7 @@ public abstract class UrlProviderBase {
         UrlPatterns.Any(str => Regex.Match(urlString, str).Success);
 
     private string GetRandomInstance(bool ignoreBlacklist = false) {
-        string[]? validInstances = PrimaryUrls;
+        var validInstances = PrimaryUrls;
         
         // We have to do some work to build the list in this case
         if (!ignoreBlacklist && validInstances is not null) {

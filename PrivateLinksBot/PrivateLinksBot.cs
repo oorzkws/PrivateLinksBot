@@ -1,7 +1,12 @@
 ﻿using Discord;
+using Discord.Logging;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
+using Microsoft.Extensions.Options;
+using static PrivateLinksBot.Logger;
 
 namespace PrivateLinksBot;
 
@@ -13,14 +18,16 @@ public class PrivateLinksBot {
     private readonly IServiceProvider serviceProvider;
 
     public PrivateLinksBot() {
-        Logger.MinimumLogSeverity = LogSeverity.Debug;
         serviceProvider = CreateServices();
     }
 
     public async Task RunAsync() {
         // Build the client service
         var client = serviceProvider.GetRequiredService<DiscordSocketClient>();
-        client.Log += Logger.LogAsync;
+        client.Log += msg => {
+            WriteLog(msg);
+            return Task.CompletedTask;
+        };
 
         // Activate add-on services
         await serviceProvider.ActivateAsync<ServiceBase>();
@@ -38,8 +45,8 @@ public class PrivateLinksBot {
         await Task.Delay(-1);
     }
 
-    static IServiceProvider CreateServices() {
-        var socketConfig = new DiscordSocketConfig() {
+    private static IServiceProvider CreateServices() {
+        var socketConfig = new DiscordSocketConfig {
             // All minus unused privileged intents
             GatewayIntents = GatewayIntents.All ^
                              GatewayIntents.GuildScheduledEvents ^
@@ -48,10 +55,10 @@ public class PrivateLinksBot {
         };
 
         var serviceCollection = new ServiceCollection()
+            .AddSingleton(LoggerFactory.Create(b => b.AddCustomFormatter()))
             .AddSingleton(socketConfig)
             .AddSingleton<DiscordSocketClient>()
             .AddSingleton(provider => new InteractionService(provider.GetRequiredService<DiscordSocketClient>()))
-            .AddSingleton<InteractionService>()
             .RegisterImplicitServices<ServiceBase>();
 
         return serviceCollection.BuildServiceProvider();

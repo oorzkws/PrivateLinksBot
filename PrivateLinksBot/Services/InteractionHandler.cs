@@ -2,7 +2,7 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
+using static PrivateLinksBot.Logger;
 
 namespace PrivateLinksBot;
 
@@ -19,10 +19,12 @@ public class InteractionHandler : ServiceBase {
     public override async Task InitializeAsync() {
         //Client.Ready += ReadyAsync;
         Client.GuildAvailable += guild => Handler.RegisterCommandsToGuildAsync(guild.Id);
-        Handler.Log += Logger.LogAsync;
+        Handler.Log += msg => {
+            WriteLog(msg);
+            return Task.CompletedTask;
+        };
 
         await Handler.AddModulesAsync(Assembly.GetExecutingAssembly(), Provider);
-        await Logger.LogInfo($"InteractionHandler started");
 
         Client.InteractionCreated += HandleInteraction;
 
@@ -42,7 +44,7 @@ public class InteractionHandler : ServiceBase {
         catch {
             if (interaction.Type is InteractionType.ApplicationCommand)
                 await interaction.GetOriginalResponseAsync()
-                    .ContinueWith(async (msg) => await msg.Result.DeleteAsync());
+                    .ContinueWith(async msg => await msg.Result.DeleteAsync());
         }
     }
 }

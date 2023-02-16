@@ -1,72 +1,53 @@
-﻿using Discord;
+﻿using Crayon;
+using Discord;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 
 namespace PrivateLinksBot;
 
 /// <summary>
 /// Handles logging to console
 /// </summary>
-public static class Logger {
-    private static readonly Dictionary<LogSeverity, ConsoleColor> colorMap = new() {
-        {LogSeverity.Debug, ConsoleColor.DarkBlue},
-        {LogSeverity.Verbose, ConsoleColor.Gray},
-        {LogSeverity.Info, ConsoleColor.White},
-        {LogSeverity.Warning, ConsoleColor.DarkYellow},
-        {LogSeverity.Error, ConsoleColor.DarkMagenta},
-        {LogSeverity.Critical, ConsoleColor.DarkRed}
-    };
+public class Logger {
+    private static readonly ILogger iLog;
 
-    private static readonly object writeLock = new object();
-
-    private static ConsoleColor originalForeground = ConsoleColor.White;
-    private static ConsoleColor originalBackground = ConsoleColor.Black;
-
-    public static LogSeverity MinimumLogSeverity = LogSeverity.Info;
-
-
-    private static void SetColors(ConsoleColor? fore, ConsoleColor? back) {
-        originalBackground = Console.BackgroundColor;
-        if (back.HasValue)
-            Console.BackgroundColor = back.Value;
-
-        originalForeground = Console.ForegroundColor;
-        if (fore.HasValue)
-            Console.ForegroundColor = fore.Value;
+    static Logger() {
+        iLog = LoggerFactory.Create(
+            builder => builder.AddCustomFormatter(LogLevel.Debug)
+        ).CreateLogger(string.Empty);
     }
 
-    private static void ResetColors() {
-        if (Console.ForegroundColor != originalForeground)
-            Console.ForegroundColor = originalForeground;
-
-        if (Console.BackgroundColor != originalBackground)
-            Console.BackgroundColor = originalBackground;
+    public static void WriteLog(LogMessage msg) {
+        WriteLog(msg.Severity switch {
+            LogSeverity.Critical => LogLevel.Critical,
+            LogSeverity.Debug => LogLevel.Trace,
+            LogSeverity.Error => LogLevel.Error,
+            LogSeverity.Info => LogLevel.Information,
+            LogSeverity.Verbose => LogLevel.Debug,
+            LogSeverity.Warning => LogLevel.Warning,
+            _ => LogLevel.Debug // CS8524 - enums take arbitrary int casts
+        }, msg.Source, msg.Message);
     }
 
-    private static void WriteLog(
-        LogMessage msg,
-        ConsoleColor? foregroundColor,
-        ConsoleColor? backgroundColor
-    ) {
-        lock (writeLock) {
-            SetColors(foregroundColor, backgroundColor);
-
-            Console.WriteLine(msg.ToString());
-
-            ResetColors();
-        }
+    public static void WriteLog(LogLevel level, string source, [StructuredMessageTemplate] string? message, params object[] args) {
+        iLog.Log(level, new EventId(-1, source), message, args);
     }
 
-    public static async Task LogAsync(LogMessage message) {
-        if (message.Severity <= MinimumLogSeverity) {
-            WriteLog(message, colorMap[message.Severity], null);
-        }
-
-        await Task.CompletedTask;
+    public static void WriteLog(LogLevel level, [StructuredMessageTemplate] string? message, params object[] args) {
+        WriteLog(level, "System", message, args);
     }
 
-    public static Task LogDebug(string message) => LogAsync(new LogMessage(LogSeverity.Debug, "Logger", message));
-    public static Task LogVerbose(string message) => LogAsync(new LogMessage(LogSeverity.Verbose, "Logger", message));
-    public static Task LogInfo(string message) => LogAsync(new LogMessage(LogSeverity.Info, "Logger", message));
-    public static Task LogWarning(string message) => LogAsync(new LogMessage(LogSeverity.Warning, "Logger", message));
-    public static Task LogError(string message) => LogAsync(new LogMessage(LogSeverity.Error, "Logger", message));
-    public static Task LogCritical(string message) => LogAsync(new LogMessage(LogSeverity.Critical, "Logger", message));
+    public static void LogDebug(string source, string message) => WriteLog(LogLevel.Trace, source, message);
+    public static void LogVerbose(string source, string message) => WriteLog(LogLevel.Debug, source, message);
+    public static void LogInfo(string source, string message) => WriteLog(LogLevel.Information, source, message);
+    public static void LogWarning(string source, string message) => WriteLog(LogLevel.Warning, source, message);
+    public static void LogError(string source, string message) => WriteLog(LogLevel.Error, source, message);
+    public static void LogCritical(string source, string message) => WriteLog(LogLevel.Critical, source, message);
+    
+    public static void LogDebug(Type source, string message) => WriteLog(LogLevel.Trace, source.Name, message);
+    public static void LogVerbose(Type source, string message) => WriteLog(LogLevel.Debug, source.Name, message);
+    public static void LogInfo(Type source, string message) => WriteLog(LogLevel.Information, source.Name, message);
+    public static void LogWarning(Type source, string message) => WriteLog(LogLevel.Warning, source.Name, message);
+    public static void LogError(Type source, string message) => WriteLog(LogLevel.Error, source.Name, message);
+    public static void LogCritical(Type source, string message) => WriteLog(LogLevel.Critical, source.Name, message);
 }

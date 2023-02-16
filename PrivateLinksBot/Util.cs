@@ -4,9 +4,9 @@ using System.Text.Json;
 namespace PrivateLinksBot;
 
 public static class Util {
-    private static Random random = new Random();
+    private static readonly Random random = new();
     
-    public static T? ReadJsonFile<T>(string path) {
+    public static async Task<T?> ReadJsonFile<T>(string path) {
         if (!Uri.IsWellFormedUriString(path, UriKind.RelativeOrAbsolute)) {
             return default;
         }
@@ -20,12 +20,12 @@ public static class Util {
                 return default;
             }
 
-            fileContents = File.ReadAllText(path, Encoding.UTF8);
+            fileContents = await File.ReadAllTextAsync(path, Encoding.UTF8);
         }
         else {
             var webClient = new HttpClient();
             try {
-                fileContents = webClient.GetStringAsync(pathAsUri).Result;
+                fileContents = await webClient.GetStringAsync(pathAsUri);
             }
             catch {
                 // ignored
@@ -54,7 +54,7 @@ public static class Util {
         }
         return array[random.Next(0, length)];
     }
-
+    
     public static KeyValuePair<T1, T2> RandomEntry<T1, T2>(this Dictionary<T1, T2> dictionary) where T1 : notnull {
         var length = dictionary.Count - 1;
         if (length < 0) {

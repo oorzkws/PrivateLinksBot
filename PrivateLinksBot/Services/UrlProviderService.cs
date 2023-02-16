@@ -3,19 +3,17 @@ using System.Reflection;
 using Discord.WebSocket;
 using Timer = System.Timers.Timer;
 using static System.TimeSpan;
+using static PrivateLinksBot.Logger;
 
 namespace PrivateLinksBot;
 
 public class UrlProviderService : ServiceBase {
-    // ReSharper disable once NotAccessedField.Local - Discord.NET requirement in constructor
-    private IServiceProvider iProvider;
     public readonly Dictionary<string, UrlProviderBase> Providers = new();
     public readonly List<string> Blacklist = new();
     
     private const string dataPath = @"https://raw.githubusercontent.com/libredirect/instances/main/data.json";
-
+    
     public UrlProviderService(DiscordSocketClient client, IServiceProvider parent) : base(client) {
-        iProvider = parent;
     }
 
     public override async Task InitializeAsync() {
@@ -67,7 +65,7 @@ public class UrlProviderService : ServiceBase {
                 var message = new HttpRequestMessage(HttpMethod.Head, instance + service.TestEndpoint);
                 var response = await client.SendAsync(message);
                 if (response.IsSuccessStatusCode || service.Name == "libreddit" && response.StatusCode == HttpStatusCode.NotFound) {
-                    await Logger.LogDebug($"Successfully tested {service.Name} instance {instance}");
+                    LogDebug("Instance Check",$"Successfully tested {service.Name} instance {instance}");
                     Blacklist.Remove(instance);
                 }
                 else if (!Blacklist.Contains(instance)) {
@@ -75,7 +73,7 @@ public class UrlProviderService : ServiceBase {
                 }
             }
             catch (Exception e) {
-                await Logger.LogDebug($"Unsuccessfully tested {service.Name} instance {instance} ({e.Message})");
+                LogDebug("Instance Check",$"Unsuccessfully tested {service.Name} instance {instance} ({e.Message})");
                 if (!Blacklist.Contains(instance))
                     Blacklist.Add(instance);
             }
@@ -98,13 +96,13 @@ public class UrlProviderService : ServiceBase {
     /// Fetches the service configuration data from the internet, falling back to on-disk if necessary
     /// </summary>
     private async Task ReloadConfig() {
-        await Logger.LogInfo("Reloading UrlProviderBroker configuration");
+        LogInfo("UrlProvider", "Reloading configuration");
         // Try the URL method first
-        var parsedData = Util.ReadJsonFile<Dictionary<string, Dictionary<string, string[]>>>(dataPath);
+        var parsedData = await Util.ReadJsonFile<Dictionary<string, Dictionary<string, string[]>>>(dataPath);
         // Welp, try for a file in the working directory
-        parsedData ??= Util.ReadJsonFile<Dictionary<string, Dictionary<string, string[]>>>(Path.GetFileName(dataPath));
+        parsedData ??= await Util.ReadJsonFile<Dictionary<string, Dictionary<string, string[]>>>(Path.GetFileName(dataPath));
         if (parsedData is null) {
-            await Logger.LogWarning($"Both remote and local attempts at reading data.json have failed. Please fetch `{dataPath}` and place it in the working directory.");
+            LogWarning("UrlProvider",$"Both remote and local attempts at reading data.json have failed. Please fetch `{dataPath}` and place it in the working directory.");
             return;
         }
         // Huzzah, add the data to our relevant classes
@@ -126,20 +124,12 @@ public class UrlProviderService : ServiceBase {
 
         // Do we have any applicable providers?
         var validProviders = Providers.Values.Where(p => p.IsApplicable(urlString)).ToArray();
-        if (validProviders.Length == 0) {
-            return null;
-        }
-        
-        return validProviders.RandomEntry();
+        return validProviders.Length == 0 ? null : validProviders.RandomEntry();
     }
     
 
     public string? GetLinkFromRandomApplicableService(string urlString) {
-        // Not a url
-        if (!Uri.TryCreate(urlString, UriKind.Absolute, out var url)) {
-            return null;
-        }
-
-        return GetRandomApplicableService(urlString, url)?.GetLinkFromRandomInstance(url);
+        // Not a url?
+        return !Uri.TryCreate(urlString, UriKind.Absolute, out var url) ? null : GetRandomApplicableService(urlString, url)?.GetLinkFromRandomInstance(url);
     }
 }

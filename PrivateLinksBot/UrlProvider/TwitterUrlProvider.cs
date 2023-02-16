@@ -1,5 +1,6 @@
 ﻿namespace PrivateLinksBot;
 
+
 public class TwitterUrlProvider : UrlProviderBase {
     public TwitterUrlProvider(UrlProviderService service) : base(service) {
         Name = "nitter";

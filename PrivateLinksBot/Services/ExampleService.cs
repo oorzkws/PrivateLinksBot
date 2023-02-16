@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using static PrivateLinksBot.Logger;
 
 namespace PrivateLinksBot;
 
@@ -10,7 +11,8 @@ public class ExampleService : ServiceBase {
     }
 
     public override async Task InitializeAsync() {
-        await Logger.LogInfo($"ExampleService started, client status: {Client.ConnectionState}");
+        var timeOfDay = DateTime.Now.Hour < 12 ? "Morning" : DateTime.Now.Hour < 18 ? "Afternoon" : "Evening";
+        LogVerbose("DemoService",$"Good {timeOfDay}");
         await base.InitializeAsync();
     }
 }
