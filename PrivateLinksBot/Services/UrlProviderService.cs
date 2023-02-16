@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Net;
+using System.Reflection;
 using Discord.WebSocket;
 using Timer = System.Timers.Timer;
 using static System.TimeSpan;
@@ -46,7 +47,7 @@ public class UrlProviderService : ServiceBase {
             var servicesWithDynamicInstances = (
                 from provider in Providers.Values
                 where provider.PrimaryUrls is not null
-                where provider.PrimaryUrls.Length > 0
+                where provider.PrimaryUrls!.Length > 0
                 select provider).ToArray();
             
             // ??? how did you do this
@@ -65,16 +66,15 @@ public class UrlProviderService : ServiceBase {
                 };
                 var message = new HttpRequestMessage(HttpMethod.Head, instance + service.TestEndpoint);
                 var response = await client.SendAsync(message);
-                if (response.IsSuccessStatusCode) {
+                if (response.IsSuccessStatusCode || service.Name == "libreddit" && response.StatusCode == HttpStatusCode.NotFound) {
                     await Logger.LogDebug($"Successfully tested {service.Name} instance {instance}");
                     Blacklist.Remove(instance);
                 }
                 else if (!Blacklist.Contains(instance)) {
-                    await Logger.LogDebug($"Unsuccessfully tested {service.Name} instance {instance} ({response.StatusCode})");
-                    Blacklist.Add(instance);
+                    throw new HttpRequestException($"{response.StatusCode}");
                 }
             }
-            catch (HttpRequestException e) {
+            catch (Exception e) {
                 await Logger.LogDebug($"Unsuccessfully tested {service.Name} instance {instance} ({e.Message})");
                 if (!Blacklist.Contains(instance))
                     Blacklist.Add(instance);
