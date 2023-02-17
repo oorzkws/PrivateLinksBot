@@ -3,9 +3,9 @@ using Discord.Logging;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting.Systemd;
 using static PrivateLinksBot.Logger;
 
 namespace PrivateLinksBot;
@@ -56,6 +56,7 @@ public class PrivateLinksBot {
 
         var serviceCollection = new ServiceCollection()
             .AddSingleton(LoggerFactory.Create(b => b.AddCustomFormatter()))
+            .AddSystemd()
             .AddSingleton(socketConfig)
             .AddSingleton<DiscordSocketClient>()
             .AddSingleton(provider => new InteractionService(provider.GetRequiredService<DiscordSocketClient>()))
