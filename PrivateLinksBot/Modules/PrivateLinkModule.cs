@@ -105,11 +105,15 @@ public class PrivateLinkModule : InteractionModuleBase {
 
         // Our redirect has failed, let's ask archive for a copy
         try {
+            await ModifyOriginalResponseAsync(m =>
+                m.Content = "No pre-existing archive found, please wait while I make a new one"
+            );
             httpMessage = new HttpRequestMessage(HttpMethod.Head, @"https://web.archive.org/save/" + url);
             var redirectData = await httpClient.SendAsync(httpMessage, HttpCompletionOption.ResponseHeadersRead);
             redirectUrl = redirectData.Headers.Location?.ToString();
         }
-        catch {
+        catch(Exception e) {
+            LogWarning("/archive", $"HTTP Exception: {e.Message,20}");
             // sigh
         }
         
@@ -123,7 +127,7 @@ public class PrivateLinkModule : InteractionModuleBase {
         
         LogInfo("/archive", "Couldn't archive given link");
         await ModifyOriginalResponseAsync(m => 
-            m.Content = $"Archiving `{url}` failed. Make sure your link is valid and publicly accessible."
+            m.Content = $"Archiving `{url}` failed. Make sure your link is valid and publicly accessible.\nPlease also note that archive.org may be overloaded with requests at peak times."
         );
     }
     
