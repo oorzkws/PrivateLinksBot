@@ -14,6 +14,6 @@ public class DoiUrlProvider  : UrlProviderBase {
     }
 
     protected override string GetLink(string instance, Uri url) {
-        return $"{instance}{url}";
+        return $"{instance}/{url}";
     }
 }
