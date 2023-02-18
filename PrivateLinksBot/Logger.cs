@@ -1,4 +1,5 @@
-﻿using Crayon;
+﻿using System.Diagnostics.CodeAnalysis;
+using Crayon;
 using Discord;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,7 @@ namespace PrivateLinksBot;
 /// <summary>
 /// Handles logging to console
 /// </summary>
+[SuppressMessage("Usage", "CA2254:Template should be a static expression")] // Enforced in receiving method
 public class Logger {
     private static readonly ILogger iLog;
 
@@ -26,15 +28,15 @@ public class Logger {
             LogSeverity.Verbose => LogLevel.Debug,
             LogSeverity.Warning => LogLevel.Warning,
             _ => LogLevel.Debug // CS8524 - enums take arbitrary int casts
-        }, msg.Source, msg.Message);
+        }, msg.Source, msg.Exception, msg.Message);
     }
 
+    public static void WriteLog(LogLevel level, string source, Exception? exception, [StructuredMessageTemplate] string? message, params object[] args) {
+        iLog.Log(level, new EventId(-1, source), exception, message, args);
+    }
+    
     public static void WriteLog(LogLevel level, string source, [StructuredMessageTemplate] string? message, params object[] args) {
         iLog.Log(level, new EventId(-1, source), message, args);
-    }
-
-    public static void WriteLog(LogLevel level, [StructuredMessageTemplate] string? message, params object[] args) {
-        WriteLog(level, "System", message, args);
     }
 
     public static void LogDebug(string source, string message) => WriteLog(LogLevel.Trace, source, message);

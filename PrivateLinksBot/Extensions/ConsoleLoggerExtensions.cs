@@ -30,24 +30,24 @@ public sealed class CustomLoggingFormatter : ConsoleFormatter, IDisposable {
 
     public override void Write<TState>(in LogEntry<TState> logEntry, IExternalScopeProvider? scopeProvider,
         TextWriter textWriter) {
-        var message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
-        if (message is null) {
+        var messageText = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
+        if (messageText is null) {
             return;
         }
 
-        message = logEntry.LogLevel switch {
-            LogLevel.Critical => As.Black(message),
-            LogLevel.Trace => As.Dim().Blue(message),
-            LogLevel.Error => As.Dim().Magenta(message),
-            LogLevel.Information => As.White(message),
-            LogLevel.Debug => As.Dim().Green(message),
-            LogLevel.Warning => As.Dim().Yellow(message),
-            _ => As.White(message) // CS8524 - enums take arbitrary int casts
+        messageText = logEntry.LogLevel switch {
+            LogLevel.Critical => As.Black(messageText),
+            LogLevel.Trace => As.Dim().Blue(messageText),
+            LogLevel.Error => As.Dim().Magenta(messageText),
+            LogLevel.Information => As.White(messageText),
+            LogLevel.Debug => As.Dim().Green(messageText),
+            LogLevel.Warning => As.Dim().Yellow(messageText),
+            _ => As.White(messageText) // CS8524 - enums take arbitrary int casts
         };
 
         var dateString = As.Bold().White($"{DateTime.Now:HH:mm:ss}");
         var eventString = As.Underline(logEntry.EventId.Name ?? "");
-        textWriter.WriteLine($"{dateString} {eventString,-20} {message,0}");
+        textWriter.WriteLine($"{dateString} {eventString,-20} {messageText,0}");
     }
 
     public void Dispose() {
