@@ -38,7 +38,7 @@ public sealed class CustomLoggingFormatter : ConsoleFormatter, IDisposable {
         var messageText = logEntry.Formatter(logEntry.State, logEntry.Exception);
 
         messageText = logEntry.LogLevel switch {
-            LogLevel.Critical => As.Black(messageText),
+            LogLevel.Critical => As.Red(messageText),
             LogLevel.Trace => As.Dim().Blue(messageText),
             LogLevel.Error => As.Dim().Magenta(messageText),
             LogLevel.Information => As.White(messageText),
