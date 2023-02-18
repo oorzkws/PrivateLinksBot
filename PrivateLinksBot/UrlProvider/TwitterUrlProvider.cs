@@ -1,11 +1,12 @@
-﻿namespace PrivateLinksBot;
+﻿// ReSharper disable StringLiteralTypo
 
+namespace PrivateLinksBot;
 
 public class TwitterUrlProvider : UrlProviderBase {
     public TwitterUrlProvider(UrlProviderService service) : base(service) {
         Name = "nitter";
         FriendlyName = "Twitter - Nitter";
-        SecondaryUrls = new[]{"https://nitter.nl"};
+        SecondaryUrls = new[] {"https://nitter.nl"};
         TestEndpoint = "/about";
         UrlPatterns = new[] {
             @"^https?:\/{2}(www\.|mobile\.|)twitter\.com(\/|$)",

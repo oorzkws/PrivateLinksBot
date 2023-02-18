@@ -11,16 +11,16 @@ namespace PrivateLinksBot;
 public abstract class ServiceBase {
     protected DiscordSocketClient Client { get; }
     public readonly long Epoch;
-    
+
     // ReSharper disable once PublicConstructorInAbstractClass - Required for DI
     public ServiceBase(DiscordSocketClient client) {
         Client = client;
         Epoch = DateTime.Now.Ticks;
-        Logger.LogDebug(GetType(), $"Constructing, ID {Epoch}");
+        LogDebug(GetType(), $"Constructing, ID {Epoch}");
     }
 
     public virtual Task InitializeAsync() {
-        Logger.LogDebug(GetType(), $"Finished async init for ID {Epoch}");
+        LogDebug(GetType(), $"Finished async init for ID {Epoch}");
         return Task.CompletedTask;
     }
 }

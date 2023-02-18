@@ -1,6 +1,9 @@
-﻿namespace PrivateLinksBot;
+﻿// ReSharper disable StringLiteralTypo
+
+namespace PrivateLinksBot;
 
 public abstract class BaseYoutubeProvider : UrlProviderBase {
+    // ReSharper disable once PublicConstructorInAbstractClass
     public BaseYoutubeProvider(UrlProviderService service) : base(service) {
         UrlPatterns = new[] {
             @"^https?:\/{2}redirect\.invidious\.io\/.*",

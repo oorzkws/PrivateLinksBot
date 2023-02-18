@@ -11,15 +11,16 @@ public abstract class UrlProviderBase {
     public string FriendlyName;
     public string[]? PrimaryUrls;
     public string[] SecondaryUrls;
-    [RegexPattern]
-    [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
+
+    [RegexPattern, UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
     public string[] UrlPatterns;
+
     public string TestEndpoint;
     public int ConnectionTimeoutSeconds = 2;
-    
+
     // ReSharper disable once PublicConstructorInAbstractClass
     public UrlProviderBase(UrlProviderService service) {
-        LogDebug(GetType(),"Constructing...");
+        LogDebug(GetType(), "Constructing...");
         this.service = service;
         // These will be overwritten in any child classes
         Name = string.Empty;
@@ -30,12 +31,11 @@ public abstract class UrlProviderBase {
     }
 
 
-    public bool IsApplicable(string urlString) =>
-        UrlPatterns.Any(str => Regex.Match(urlString, str).Success);
+    public bool IsApplicable(string urlString) => UrlPatterns.Any(str => Regex.Match(urlString, str).Success);
 
     private string GetRandomInstance(bool ignoreBlacklist = false) {
         var validInstances = PrimaryUrls;
-        
+
         // We have to do some work to build the list in this case
         if (!ignoreBlacklist && validInstances is not null) {
             // Subtract our blacklist and return the remainder to our local if it has any entries
@@ -44,17 +44,15 @@ public abstract class UrlProviderBase {
                 validInstances = cleanInstances;
             }
         }
-        
+
         // We have no primary list or failed to find any clean entries
         validInstances ??= SecondaryUrls;
-        
+
         // Huzzah
         return validInstances.RandomEntry();
     }
 
-    protected virtual string GetLink(string instance, Uri url) {
-        return instance + url.PathAndQuery;
-    }
+    protected virtual string GetLink(string instance, Uri url) => instance + url.PathAndQuery;
 
     public string GetLinkFromRandomInstance(Uri url) => GetLink(GetRandomInstance(), url);
 }

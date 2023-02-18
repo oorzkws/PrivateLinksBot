@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using static PrivateLinksBot.Logger;
 
-namespace PrivateLinksBot; 
+namespace PrivateLinksBot;
 
 public static class ServiceProviderExtensions {
     public static async Task ActivateAsync<T>(this IServiceProvider serviceProvider)
@@ -12,10 +12,9 @@ public static class ServiceProviderExtensions {
         }
     }
 
-    public static TService GetRequiredConcreteService<TService, TServiceBase>(this IServiceProvider serviceProvider) where TService : TServiceBase {
-        return (from service in serviceProvider.GetServices<TServiceBase>()
-            where service is not null
-            where service is TService
-            select (TService) service).First();
-    }
+    public static TService GetRequiredConcreteService<TService, TServiceBase>(this IServiceProvider serviceProvider)
+        where TService : TServiceBase => (from service in serviceProvider.GetServices<TServiceBase>()
+        where service is not null
+        where service is TService
+        select (TService) service).First();
 }

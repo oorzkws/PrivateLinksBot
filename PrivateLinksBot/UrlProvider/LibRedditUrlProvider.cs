@@ -1,4 +1,6 @@
-﻿namespace PrivateLinksBot;
+﻿// ReSharper disable StringLiteralTypo
+
+namespace PrivateLinksBot;
 
 public class LibRedditUrlProvider : UrlProviderBase {
     public LibRedditUrlProvider(UrlProviderService service) : base(service) {

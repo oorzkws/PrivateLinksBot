@@ -42,9 +42,10 @@ public class InteractionHandler : ServiceBase {
             }
         }
         catch {
-            if (interaction.Type is InteractionType.ApplicationCommand)
+            if (interaction.Type is InteractionType.ApplicationCommand) {
                 await interaction.GetOriginalResponseAsync()
                     .ContinueWith(async msg => await msg.Result.DeleteAsync());
+            }
         }
     }
 }

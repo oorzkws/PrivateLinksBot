@@ -1,11 +1,8 @@
 ﻿using Discord;
-using Discord.Logging;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
-using Microsoft.Extensions.Options;
 using static PrivateLinksBot.Logger;
 
 namespace PrivateLinksBot;
@@ -34,9 +31,10 @@ public class PrivateLinksBot {
 
         var token = Environment.GetEnvironmentVariable(tokenEnvironmentVariable);
 
-        if (token is null)
+        if (token is null) {
             throw new ApplicationException(
                 $"No token found. Please set the {tokenEnvironmentVariable} environment variable.");
+        }
 
         await client.LoginAsync(TokenType.Bot, token);
         await client.StartAsync();
