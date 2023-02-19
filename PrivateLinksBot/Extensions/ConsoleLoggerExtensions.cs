@@ -36,6 +36,9 @@ public sealed class CustomLoggingFormatter : ConsoleFormatter, IDisposable {
         TextWriter textWriter
     ) {
         var messageText = logEntry.Formatter(logEntry.State, logEntry.Exception);
+        if (messageText == "[null]" && logEntry.Exception is not null) {
+            messageText = logEntry.Exception.ToString();
+        }
 
         messageText = logEntry.LogLevel switch {
             LogLevel.Critical => As.Red(messageText),
